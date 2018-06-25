@@ -1,4 +1,4 @@
-package com.Altimetrik.NetworkProvider;
+package com.altimetrik.networkprovider;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package com.Altimetrik.NetworkProvider.model;
+package com.altimetrik.networkprovider.model;
 
 import java.util.ArrayList;
 import java.util.List;

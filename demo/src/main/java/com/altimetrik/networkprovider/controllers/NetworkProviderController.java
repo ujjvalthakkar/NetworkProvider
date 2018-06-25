@@ -1,4 +1,4 @@
-package com.Altimetrik.NetworkProvider.controllers;
+package com.altimetrik.networkprovider.controllers;
 
 import java.util.List;
 
@@ -9,11 +9,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.Altimetrik.NetworkProvider.Service.ProviderService;
-
-import com.Altimetrik.NetworkProvider.model.Hospital;
-import com.Altimetrik.NetworkProvider.model.Physician;
-import com.Altimetrik.NetworkProvider.model.Speciality;
+import com.altimetrik.networkprovider.model.Hospital;
+import com.altimetrik.networkprovider.model.Physician;
+import com.altimetrik.networkprovider.model.Speciality;
+import com.altimetrik.networkprovider.service.ProviderService;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;

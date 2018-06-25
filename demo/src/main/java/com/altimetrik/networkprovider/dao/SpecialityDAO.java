@@ -1,4 +1,4 @@
-package com.Altimetrik.NetworkProvider.DAO;
+package com.altimetrik.networkprovider.dao;
 
 import java.util.List;
 
@@ -6,9 +6,9 @@ import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.springframework.stereotype.Component;
 
-import com.Altimetrik.NetworkProvider.model.Hospital;
-import com.Altimetrik.NetworkProvider.model.Physician;
-import com.Altimetrik.NetworkProvider.model.Speciality;
+import com.altimetrik.networkprovider.model.Hospital;
+import com.altimetrik.networkprovider.model.Physician;
+import com.altimetrik.networkprovider.model.Speciality;
 
 @Component
 public class SpecialityDAO extends DAO {
