@@ -2,21 +2,21 @@ package com.altimetrik.networkprovider.controllers;
 
 import java.util.List;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.altimetrik.networkprovider.model.Hospital;
 import com.altimetrik.networkprovider.model.Physician;
 import com.altimetrik.networkprovider.model.Speciality;
 import com.altimetrik.networkprovider.service.ProviderService;
+import com.socrata.api.HttpLowLevel;
+import com.socrata.api.Soda2Consumer;
+import com.socrata.builders.SoqlQueryBuilder;
+import com.socrata.exceptions.LongRunningQueryException;
+import com.socrata.exceptions.SodaError;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -29,10 +29,10 @@ public class NetworkProviderController {
 
 	Client client = Client.create();
 
-	String getHospitalsUrl = "https://data.medicare.gov/resource/rbry-mqwu.json";
-	String getPhysiciansUrl = "https://data.medicare.gov/resource/c8qv-268j.json";
-	String getSpecialitiesUrl = "";
-	String getHospitalsByNameUrl = "https://data.medicare.gov/resource/rbry-mqwu.json?$where=hospital_name like ";
+	private final String getHospitalsUrl = "https://data.medicare.gov/resource/rbry-mqwu.json";
+	private final String getPhysiciansUrl = "https://data.medicare.gov/resource/c8qv-268j.json";
+	private final String getSpecialitiesUrl = "";
+	private final Soda2Consumer consumer = Soda2Consumer.newConsumer("https://data.medicare.gov");
 
 	// APIs connecting to Database
 	@RequestMapping("/gethospitals")
@@ -59,6 +59,8 @@ public class NetworkProviderController {
 
 	// APIs connecting to Hospital, Physicians and Specialties APIs
 
+	// Physicians Code Section
+
 	@RequestMapping(value = "/hospitals", produces = "application/json")
 	public String getHospitals() {
 
@@ -72,39 +74,34 @@ public class NetworkProviderController {
 		return result;
 	}
 
-	@RequestMapping(value = "/hospitals/{name}", produces = "application/json")
-	public String getHospitalByName(@PathVariable String name) throws ParseException {
+	@RequestMapping(value = "/hospitals/{requestParam}/{value}", produces = "application/json")
+	public String getHospitalByRequest(@PathVariable String requestParam, @PathVariable String value)
+			throws ParseException, LongRunningQueryException, SodaError {
 
-		String url = getHospitalsByNameUrl + "'%25" + name.toUpperCase() + "%25'";
-		String url1 = getHospitalsUrl + "?hospital_name like " + name.toUpperCase();
+		// SODA Consumer API for Hospital
+		SoqlQueryBuilder query = new SoqlQueryBuilder();
+		switch (requestParam) {
+		case "location":
+			query.setWhereClause("city like '%25" + value.toUpperCase() + "%25'");
+			break;
+		case "name":
+			query.setWhereClause("hospital_name like '%25" + value.toUpperCase() + "%25'");
+			break;
+		case "id":
+			query.setWhereClause("provider_id like '%25" + value.toUpperCase() + "%25'");
+			break;
 
-		String url2 = getHospitalsUrl + "?q={\"hospital_name\": {\"$regex\" :\"" + name + "\"}}";
-
-		// System.out.println("Name: " + name + " URL:" + url + " URL1:" + url1
-		// + " url2:" + url2);
-		WebResource webResource = client.resource(getHospitalsUrl);
-		ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
-		if (response.getStatus() != 200) {
-			throw new RuntimeException("HTTP Error: " + response.getStatus());
+		default:
+			break;
 		}
-		String result = response.getEntity(String.class);
 
-		JSONParser parser = new JSONParser();
-		JSONArray jsonArray = (JSONArray) parser.parse(result);
+		ClientResponse response = consumer.query("rbry-mqwu", HttpLowLevel.JSON_TYPE, query.build());
+		String payload = response.getEntity(String.class);
 
-		JSONObject jo = new JSONObject();
-		jo.put("array", jsonArray);
-
-		//System.out.println(">>>>>>" + jo.get("array"));
-
-		return result;
+		return payload;
 	}
 
-	@RequestMapping(value = "/hospitals/id/{id}", produces = "application/json")
-	public String getHospitalById(@PathVariable String id) {
-		//
-		return "";
-	}
+	// Physicians Code Section
 
 	@RequestMapping(value = "/physicians", produces = "application/json")
 	public String getPhysicians() {
@@ -118,6 +115,34 @@ public class NetworkProviderController {
 		String result = response.getEntity(String.class);
 		return result;
 	}
+
+	@RequestMapping(value = "/physicians/{requestParam}/{value}", produces = "application/json")
+	public String getPhysiciansByRequest(@PathVariable String requestParam, @PathVariable String value)
+			throws ParseException, LongRunningQueryException, SodaError {
+
+		SoqlQueryBuilder query = new SoqlQueryBuilder();
+		switch (requestParam) {
+		case "location":
+			query.setWhereClause("cty like '%25" + value.toUpperCase() + "%25'");
+			break;
+		case "speciality":
+			query.setWhereClause("pri_spec like '%25" + value.toUpperCase() + "%25'");
+			break;	
+		case "id":
+			query.setWhereClause("npi like '%25" + value.toUpperCase() + "%25'");
+			break;
+
+		default:
+			break;
+		}
+
+		ClientResponse response = consumer.query("c8qv-268j", HttpLowLevel.JSON_TYPE, query.build());
+		String payload = response.getEntity(String.class);
+
+		return payload;
+	}
+
+	// Specialities Code Section
 
 	@RequestMapping(value = "/specialities", produces = "application/json")
 	public String getSpecialities() {
