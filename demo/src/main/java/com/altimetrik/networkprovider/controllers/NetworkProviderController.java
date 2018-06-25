@@ -2,6 +2,10 @@ package com.altimetrik.networkprovider.controllers;
 
 import java.util.List;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +28,10 @@ public class NetworkProviderController {
 	private ProviderService providerService;
 
 	Client client = Client.create();
+
+	String getHospitalsUrl = "https://data.medicare.gov/resource/rbry-mqwu.json";
+	String getPhysiciansUrl = "https://data.medicare.gov/resource/c8qv-268j.json";
+	String getSpecialitiesUrl = "";
 	String getHospitalsByNameUrl = "https://data.medicare.gov/resource/rbry-mqwu.json?$where=hospital_name like ";
 
 	// APIs connecting to Database
@@ -49,11 +57,11 @@ public class NetworkProviderController {
 
 	}
 
-	// APIs connecting to Hospital, Physicians and Speciality APIs
+	// APIs connecting to Hospital, Physicians and Specialties APIs
 
 	@RequestMapping(value = "/hospitals", produces = "application/json")
 	public String getHospitals() {
-		String getHospitalsUrl = "https://data.medicare.gov/resource/rbry-mqwu.json";
+
 		WebResource webResource = client.resource(getHospitalsUrl);
 		ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
 		if (response.getStatus() != 200) {
@@ -65,56 +73,41 @@ public class NetworkProviderController {
 	}
 
 	@RequestMapping(value = "/hospitals/{name}", produces = "application/json")
-	public String getHospitalByName(@PathVariable String name) {
+	public String getHospitalByName(@PathVariable String name) throws ParseException {
 
-		String getHospitalsUrl = "https://data.medicare.gov/resource/rbry-mqwu.json";
-		String url = getHospitalsByNameUrl + "'%" + name.toUpperCase() + "%'";
+		String url = getHospitalsByNameUrl + "'%25" + name.toUpperCase() + "%25'";
+		String url1 = getHospitalsUrl + "?hospital_name like " + name.toUpperCase();
 
+		String url2 = getHospitalsUrl + "?q={\"hospital_name\": {\"$regex\" :\"" + name + "\"}}";
+
+		// System.out.println("Name: " + name + " URL:" + url + " URL1:" + url1
+		// + " url2:" + url2);
 		WebResource webResource = client.resource(getHospitalsUrl);
-		webResource.queryParam("hospital_name", name);
 		ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
 		if (response.getStatus() != 200) {
 			throw new RuntimeException("HTTP Error: " + response.getStatus());
 		}
 		String result = response.getEntity(String.class);
 
-		System.out.println(">>>>>>>>>>>>>>>>>>" + result);
+		JSONParser parser = new JSONParser();
+		JSONArray jsonArray = (JSONArray) parser.parse(result);
 
-		
-		// ========
-		WebResource webResource1 = client.resource(getHospitalsUrl);
-		webResource1.queryParam("$where", "hospital_name like '%25" + name.toUpperCase() + "%25'");
-		ClientResponse response1 = webResource1.accept("application/json").get(ClientResponse.class);
-		if (response1.getStatus() != 200) {
-			throw new RuntimeException("HTTP Error: " + response1.getStatus());
-		}
-		
-		String result1 = response1.getEntity(String.class);
-		System.out.println(">>>>>>>>" + webResource1.getURI());
-		// ========
+		JSONObject jo = new JSONObject();
+		jo.put("array", jsonArray);
+
+		//System.out.println(">>>>>>" + jo.get("array"));
 
 		return result;
 	}
 
 	@RequestMapping(value = "/hospitals/id/{id}", produces = "application/json")
 	public String getHospitalById(@PathVariable String id) {
-		String url = getHospitalsByNameUrl + "'%" + id.toUpperCase() + "%'";
-		String getHospitalsUrl = "https://data.medicare.gov/resource/rbry-mqwu.json";
-		WebResource webResource = client.resource(getHospitalsUrl);
-		webResource.queryParam("hospital_name", id);
-		ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
-		if (response.getStatus() != 200) {
-			throw new RuntimeException("HTTP Error: " + response.getStatus());
-		}
-
-		String result = response.getEntity(String.class);
-		return result;
+		//
+		return "";
 	}
 
 	@RequestMapping(value = "/physicians", produces = "application/json")
 	public String getPhysicians() {
-
-		String getPhysiciansUrl = "";
 
 		WebResource webResource = client.resource(getPhysiciansUrl);
 		ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
@@ -128,8 +121,6 @@ public class NetworkProviderController {
 
 	@RequestMapping(value = "/specialities", produces = "application/json")
 	public String getSpecialities() {
-
-		String getSpecialitiesUrl = "";
 
 		WebResource webResource = client.resource(getSpecialitiesUrl);
 		ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);

@@ -12,9 +12,9 @@
 		<property name="hibernate.hbm2ddl.auto">create</property>
 		<property name="hibernate.show_sql">true</property>
 
-		<mapping class="com.Altimetrik.NetworkProvider.model.Hospital" />
-		<mapping class="com.Altimetrik.NetworkProvider.model.Physician" />
-		<mapping class="com.Altimetrik.NetworkProvider.model.Speciality" />
+		<mapping class="com.altimetrik.networkprovider.model.Hospital" />
+		<mapping class="com.altimetrik.networkprovider.model.Physician" />
+		<mapping class="com.altimetrik.networkprovider.model.Speciality" />
 		
 	</session-factory>
 </hibernate-configuration>
